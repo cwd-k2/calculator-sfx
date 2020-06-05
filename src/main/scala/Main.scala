@@ -52,6 +52,13 @@ import scalafx.scene.Scene
 import scalafx.scene.control.Button
 import scalafx.scene.layout.VBox
 
+import scalafx.scene.layout.GridPane
+
+//val all_buttons = ("1", "2", "3", "4",
+//                  "5", "6", "7", "8",
+//                  "9", "0", "/", "*",
+//                  "-", "+", "=", "C")
+
 object Main extends JFXApp {
   stage = new PrimaryStage {
     title = "Hello"
@@ -65,16 +72,14 @@ object Main extends JFXApp {
         }
         */
         children = Seq(
-          new Button("1"),
-          new Button("2"),
-          new Button("3"),
-          new Button("4"),
-          new Button("5"),
-          new Button("6"),
-          new Button("7"),
-          new Button("8"),
-          new Button("9"),
-          new Button("0")
+          GridPane = {
+            for(button <- ("1", "2", "3", "4",
+            "5", "6", "7", "8",
+            "9", "0", "/", "*",
+            "-", "+", "=", "C")) yield new Button(button)
+          }
+          //new Button("("),
+          //new Button(")"),
         )
       }
     }
