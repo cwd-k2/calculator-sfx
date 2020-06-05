@@ -1,8 +1,13 @@
 name := "calculator-sfx"
 version := "0.1"
 
+scalacOptions +=  " -Ymacro-annotations "
+
 // Add dependency on ScalaFX library
-libraryDependencies += "org.scalafx" %% "scalafx" % "14-R19"
+libraryDependencies ++= Seq(
+  "org.scalafx" %% "scalafx" % "14-R19",
+  "org.scalafx" %% "scalafxml-core-sfx8" % "0.5"  
+  )
 
 // Determine OS version of JavaFX binaries
 lazy val osName = System.getProperty("os.name") match {
