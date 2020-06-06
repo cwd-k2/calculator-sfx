@@ -7,6 +7,7 @@ import scalafx.scene.Scene
 import scalafx.scene.control.Button
 import scalafx.scene.layout.VBox
 import scalafx.scene.layout.GridPane
+import scalafx.scene.control.TextField
 
 import scalafx.event.ActionEvent
 import scalafx.event.EventHandler
@@ -26,11 +27,16 @@ object Main extends JFXApp {
           case "AC"   =>  input = Array.empty
           case _      =>  input = input :+ a
         }
-        println(input.mkString)
+        //println(input.mkString)
+        textField.text = input.mkString
       }
     }
   }
 
+  val textField = new TextField {
+    text = "text field"
+    editable = false
+  }
   val buttonGrid = new GridPane
   buttonGrid.add(makeButton("("),   0, 0, 1, 1)
   buttonGrid.add(makeButton(")"),   1, 0, 1, 1)
@@ -61,7 +67,7 @@ object Main extends JFXApp {
     title = "Calculator with ScalaFX"
     scene = new Scene {
       root = new VBox {
-        children = buttonGrid
+        children = Seq(textField, buttonGrid)
       }
     }
   }
