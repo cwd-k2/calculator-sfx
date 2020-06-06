@@ -18,9 +18,9 @@ object Main extends JFXApp {
       //onAction = (e: ActionEvent) => println(a)
       onAction = (e: ActionEvent) => a match {
         case "="    =>  println(input.mkString)
-        case "DEL"  =>  input = input.dropRight(1)
-        case "AC"   =>  input = Array.empty
-        case _      =>  input = input :+ a
+        case "DEL"  =>  {input = input.dropRight(1); println(input.mkString)}
+        case "AC"   =>  {input = Array.empty; println(input.mkString)}
+        case _      =>  {input = input :+ a; println(input.mkString)}
       }
     }
 
