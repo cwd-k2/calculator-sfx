@@ -11,21 +11,27 @@ import scalafx.scene.layout.GridPane
 import scalafx.event.ActionEvent
 import scalafx.event.EventHandler
 
+
+
 object Main extends JFXApp {
-  def makeButton(a: String): Button =
+  var input: Array[String] = Array.empty
+
+  def makeButton(a: String): Button = {
     new Button {
       text = a
-      //onAction = (e: ActionEvent) => println(a)
-      onAction = (e: ActionEvent) => a match {
-        case "="    =>  println(input.mkString)
-        case "DEL"  =>  {input = input.dropRight(1); println(input.mkString)}
-        case "AC"   =>  {input = Array.empty; println(input.mkString)}
-        case _      =>  {input = input :+ a; println(input.mkString)}
+      onAction = (e: ActionEvent) => {
+        a match {
+          case "="    =>  // println(input.mkString)
+          case "DEL"  =>  input = input.dropRight(1)
+          case "AC"   =>  input = Array.empty
+          case _      =>  input = input :+ a
+        }
+        println(input.mkString)
       }
     }
+  }
 
   val buttonGrid = new GridPane
-  var input: Array[String] = Array.empty
   buttonGrid.add(makeButton("("),   0, 0, 1, 1)
   buttonGrid.add(makeButton(")"),   1, 0, 1, 1)
   buttonGrid.add(makeButton("DEL"), 2, 0, 1, 1)
