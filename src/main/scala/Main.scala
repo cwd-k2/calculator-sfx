@@ -62,28 +62,32 @@ object Main extends JFXApp {
     }
 
     // 逆ポーランド記法になるように演算子を追加していく
-    while (stack.nonEmpty) queue += stack.pop
+    try {
+      while (stack.nonEmpty) queue += stack.pop
 
-    val nStack: scala.collection.mutable.Stack[BigDecimal] = scala.collection.mutable.Stack[BigDecimal]()
+      val nStack: scala.collection.mutable.Stack[BigDecimal] = scala.collection.mutable.Stack[BigDecimal]()
 
-    while (queue.nonEmpty) {
-      val token = queue.dequeue
-      token match {
-        case "+" | "-" | "*" | "/" => {
-          val rhs = nStack.pop
-          val lhs = nStack.pop
-          token match {
-            case "+" => nStack.push(lhs + rhs)
-            case "-" => nStack.push(lhs - rhs)
-            case "*" => nStack.push(lhs * rhs)
-            case "/" => nStack.push(lhs / rhs)
+      while (queue.nonEmpty) {
+        val token = queue.dequeue
+        token match {
+          case "+" | "-" | "*" | "/" => {
+            val rhs = nStack.pop
+            val lhs = nStack.pop
+            token match {
+              case "+" => nStack.push(lhs + rhs)
+              case "-" => nStack.push(lhs - rhs)
+              case "*" => nStack.push(lhs * rhs)
+              case "/" => if(rhs != 0) nStack.push(lhs / rhs) else throw new Exception
+            }
           }
+          case _ => nStack.push(BigDecimal(token))
         }
-        case _ => nStack.push(BigDecimal(token))
       }
-    }
 
-    nStack.pop.toString
+      nStack.pop.toString
+    } catch {
+      case _: Exception  =>  "devided 0"
+    }
   }
 
   val textField = new TextField {
