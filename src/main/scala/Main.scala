@@ -4,9 +4,11 @@ import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 
 import scalafx.scene.Scene
-import scalafx.scene.control.Button
+
 import scalafx.scene.layout.VBox
 import scalafx.scene.layout.GridPane
+
+import scalafx.scene.control.Button
 import scalafx.scene.control.TextField
 
 import scalafx.event.ActionEvent
@@ -15,12 +17,14 @@ import scala.util.Try
 
 object Main extends JFXApp {
   val calculator = new Calculator
-  def makeButton(a: String) = new CalculatorButton(a, calculator)
 
-  val textField = new TextField {
-    text = "text field"
-    editable = false
+  def makeButton(a: String) = new Button {
+    text = a
+    onAction = (e: ActionEvent) => calculator.input(a)
   }
+
+  val textField = calculator.output
+
   val buttonGrid = new GridPane
   buttonGrid.add(makeButton("("),   0, 0, 1, 1)
   buttonGrid.add(makeButton(")"),   1, 0, 1, 1)
