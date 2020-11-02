@@ -20,6 +20,9 @@ object Main extends JFXApp {
 
   def makeButton(a: String) = new Button {
     text = a
+    style = "-fx-font-size: 20px;"
+    minWidth = 80
+    minHeight = 50
     onAction = (e: ActionEvent) => calculator.input(a)
   }
 

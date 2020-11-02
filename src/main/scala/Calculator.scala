@@ -6,7 +6,7 @@ import scalafx.scene.control.TextField
 class Calculator {
   private var state: CalculatorState = new CalculatorInitialState()
   private var stateArchive: Stack[CalculatorState] = new Stack[CalculatorState]()
-          val output: TextField = new TextField { editable = false }
+          val output: TextField = new TextField { editable = false; style = "-fx-font-size: 20px;" }
 
   def input(a: String): Unit = {
     // aに応じてなんか色々
