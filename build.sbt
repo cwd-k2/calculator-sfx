@@ -6,7 +6,7 @@ scalacOptions +=  " -Ymacro-annotations "
 // Add dependency on ScalaFX library
 libraryDependencies ++= Seq(
   "org.scalafx" %% "scalafx" % "14-R19",
-  "org.scalafx" %% "scalafxml-core-sfx8" % "0.5"  
+  "org.scalafx" %% "scalafxml-core-sfx8" % "0.5"
   )
 
 // Determine OS version of JavaFX binaries
@@ -22,3 +22,5 @@ lazy val javaFXModules = Seq("base", "controls", "fxml", "graphics", "media", "s
 libraryDependencies ++= javaFXModules.map( m =>
   "org.openjfx" % s"javafx-$m" % "14.0.1" classifier osName
 )
+
+fork in run := true
