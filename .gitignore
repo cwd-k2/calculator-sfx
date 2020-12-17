@@ -1,2 +1,5 @@
 project
 target
+.bloop
+.bsp
+.metals
