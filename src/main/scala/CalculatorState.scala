@@ -6,10 +6,11 @@ import scala.collection.mutable.Stack
 sealed trait CalculatorLiteral
 case class NumericLiteral(value: String) extends CalculatorLiteral
 case class BinaryOperator(value: String) extends CalculatorLiteral
+case object Initial      extends CalculatorLiteral
 case object ParenLeft    extends CalculatorLiteral
 case object ParenRight   extends CalculatorLiteral
-case object DecimalPoint extends CalculatorLiteral
 case object UnaryMinus   extends CalculatorLiteral
+case object DecimalPoint extends CalculatorLiteral
 
 // 状態的な
 class CalculatorState(
@@ -21,12 +22,13 @@ class CalculatorState(
   // 渡された文字列がどの要素として扱われるべきか判別してから新しい状態を作る
   def update(input: String): CalculatorState = {
     val next = input match {
-      case "-" if current == ParenLeft => UnaryMinus
-      case "+" | "-" | "*" | "/"       => BinaryOperator(input)
-      case "("                         => ParenLeft
-      case ")"                         => ParenRight
-      case "."                         => DecimalPoint
-      case _                           => NumericLiteral(input)
+      case "-" if current == ParenLeft || current == Initial =>
+        UnaryMinus
+      case "+" | "-" | "*" | "/" => BinaryOperator(input)
+      case "("                   => ParenLeft
+      case ")"                   => ParenRight
+      case "."                   => DecimalPoint
+      case _                     => NumericLiteral(input)
     }
     nextState(next)
   }
@@ -34,9 +36,10 @@ class CalculatorState(
   // 計算可能な式の形になっているかを判別する
   def isReady: Boolean =
     current match {
-      case BinaryOperator(_) | ParenLeft => false
+      case BinaryOperator(_) | ParenLeft | Initial | UnaryMinus =>
+        false
       case NumericLiteral(v) =>
-        !(v.last == '-' || v.last == '.')
+        v.last != '.'
       case _ =>
         nest == 0
     }
@@ -44,14 +47,11 @@ class CalculatorState(
   // 文字列として現在の状態を表現する
   override def toString(): String =
     current match {
-      case ParenLeft =>
-        if (nest > 0)
-          tokens.foldRight("(")(_ + _)
-        else
-          tokens.foldRight("")(_ + _)
+      case Initial      => ""
+      case ParenLeft    => tokens.foldRight("(")(_ + _)
       case ParenRight   => tokens.foldRight(")")(_ + _)
-      case DecimalPoint => tokens.foldRight(".")(_ + _) // 起こりえなさそう
       case UnaryMinus   => tokens.foldRight("-")(_ + _)
+      case DecimalPoint => tokens.foldRight(".")(_ + _) // 起こりえなさそう
       case NumericLiteral(v) => tokens.foldRight(v)(_ + _)
       case BinaryOperator(v) => tokens.foldRight(v)(_ + _)
     }
@@ -91,17 +91,27 @@ class CalculatorState(
   // 受け付けられないなら今の自分の状態をそのまま返す
   private def nextState(next: CalculatorLiteral): CalculatorState =
     (current, next) match {
+      // 最初の状態の次に来てもよいのは...
+      case (Initial, NumericLiteral(_)) =>
+        new CalculatorState(next, nest, acceptDP, tokens)
+
+      case (Initial, ParenLeft) =>
+        new CalculatorState(next, nest + 1, acceptDP, tokens)
+
+      case (Initial, UnaryMinus) =>
+        new CalculatorState(next, nest, acceptDP, tokens)
+
       // 数値の次に来てもよいのは...
-      case (NumericLiteral(u), NumericLiteral(v))  =>
+      case (NumericLiteral(u), NumericLiteral(v)) =>
         new CalculatorState(NumericLiteral(u + v), nest, acceptDP, tokens)
 
-      case (NumericLiteral(v), BinaryOperator(_)) =>
+      case (NumericLiteral(v), BinaryOperator(_)) if v.last != '.' =>
         new CalculatorState(next, nest, acceptDP, tokens :+ v)
 
       case (NumericLiteral(v), DecimalPoint) if acceptDP =>
         new CalculatorState(NumericLiteral(v + "."), nest - 1, false, tokens)
 
-      case (NumericLiteral(v), ParenRight) if nest > 0 =>
+      case (NumericLiteral(v), ParenRight) if nest > 0 && v.last != '.' =>
         new CalculatorState(next, nest - 1, true, tokens :+ v)
 
       // 二項演算子の次に来てもよいのは...
@@ -112,20 +122,14 @@ class CalculatorState(
         new CalculatorState(next, nest + 1, acceptDP, tokens :+ v)
 
       // 開き括弧の次に来てもよいのは...
-      case (ParenLeft, NumericLiteral(_)) if (nest > 0) =>
-        new CalculatorState(next, nest, acceptDP, tokens :+ "(")
       case (ParenLeft, NumericLiteral(_)) =>
-        new CalculatorState(next, nest, acceptDP, tokens)
-
-      case (ParenLeft, ParenLeft) if (nest > 0) =>
-        new CalculatorState(next, nest + 1, acceptDP, tokens :+ "(")
-      case (ParenLeft, ParenLeft) =>
-        new CalculatorState(next, nest + 1, acceptDP, tokens)
-
-      case (ParenLeft, UnaryMinus) if (nest > 0) =>
         new CalculatorState(next, nest, acceptDP, tokens :+ "(")
+
+      case (ParenLeft, ParenLeft) =>
+        new CalculatorState(next, nest + 1, acceptDP, tokens :+ "(")
+
       case (ParenLeft, UnaryMinus) =>
-        new CalculatorState(next, nest, acceptDP, tokens)
+        new CalculatorState(next, nest, acceptDP, tokens :+ "(")
 
       // 閉じ括弧の次に来てもよいのは...
       case (ParenRight, BinaryOperator(_)) =>
@@ -142,4 +146,4 @@ class CalculatorState(
     }
 }
 
-object CalculatorInitialState extends CalculatorState(ParenLeft, 0, true, Vector[String]())
+object CalculatorInitialState extends CalculatorState(Initial, 0, true, Vector[String]())

@@ -5,7 +5,7 @@ import scalafx.scene.control.TextField
 
 class Calculator {
   private var state: CalculatorState = CalculatorInitialState
-  private var archive: Stack[CalculatorState] = new Stack[CalculatorState]()
+  private var archive: Stack[CalculatorState] = Stack[CalculatorState]()
           val output: TextField = new TextField { editable = false; style = "-fx-font-size: 20px;" }
 
   def input(a: String): Unit = {
@@ -45,31 +45,27 @@ class Calculator {
   // 逆ポーランド記法に変換してから計算する
   // 値は途中で BigDecimal として計算する
   private def calculate: Unit = {
-    allclear
-
     val queue = state.toIPoland
     val stack = Stack[BigDecimal]()
+
+    allclear
 
     for (token <- queue) {
       token match {
         case "+" => {
-          val rhs = stack.pop
-          val lhs = stack.pop
+          val rhs, lhs = stack.pop
           stack.push(lhs + rhs)
         }
         case "-" => {
-          val rhs = stack.pop
-          val lhs = stack.pop
+          val rhs, lhs = stack.pop
           stack.push(lhs - rhs)
         }
         case "*" => {
-          val rhs = stack.pop
-          val lhs = stack.pop
+          val rhs, lhs = stack.pop
           stack.push(lhs * rhs)
         }
         case "/" => {
-          val rhs = stack.pop
-          val lhs = stack.pop
+          val rhs, lhs = stack.pop
 
           if (rhs == 0) // めんどくさい...
             return display("ZeroDivisionError!")
