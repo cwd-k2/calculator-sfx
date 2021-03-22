@@ -16,7 +16,6 @@ case object DecimalPoint extends CalculatorLiteral
 class CalculatorState(
   private val current:  CalculatorLiteral,
   private val nest:     Int,
-  private val acceptDP: Boolean,
   private val tokens:   Vector[String]
 ) {
   // 渡された文字列がどの要素として扱われるべきか判別してから新しい状態を作る
@@ -93,57 +92,57 @@ class CalculatorState(
     (current, next) match {
       // 最初の状態の次に来てもよいのは...
       case (Initial, NumericLiteral(_)) =>
-        new CalculatorState(next, nest, acceptDP, tokens)
+        new CalculatorState(next, nest, tokens)
 
       case (Initial, ParenLeft) =>
-        new CalculatorState(next, nest + 1, acceptDP, tokens)
+        new CalculatorState(next, nest + 1, tokens)
 
       case (Initial, UnaryMinus) =>
-        new CalculatorState(next, nest, acceptDP, tokens)
+        new CalculatorState(next, nest, tokens)
 
       // 数値の次に来てもよいのは...
       case (NumericLiteral(u), NumericLiteral(v)) =>
-        new CalculatorState(NumericLiteral(u + v), nest, acceptDP, tokens)
+        new CalculatorState(NumericLiteral(u + v), nest, tokens)
 
       case (NumericLiteral(v), BinaryOperator(_)) if v.last != '.' =>
-        new CalculatorState(next, nest, acceptDP, tokens :+ v)
+        new CalculatorState(next, nest, tokens :+ v)
 
-      case (NumericLiteral(v), DecimalPoint) if acceptDP =>
-        new CalculatorState(NumericLiteral(v + "."), nest - 1, false, tokens)
+      case (NumericLiteral(v), DecimalPoint) if !v.contains('.') =>
+        new CalculatorState(NumericLiteral(v + "."), nest - 1, tokens)
 
       case (NumericLiteral(v), ParenRight) if nest > 0 && v.last != '.' =>
-        new CalculatorState(next, nest - 1, true, tokens :+ v)
+        new CalculatorState(next, nest - 1, tokens :+ v)
 
       // 二項演算子の次に来てもよいのは...
       case (BinaryOperator(v), NumericLiteral(_)) =>
-        new CalculatorState(next, nest, acceptDP, tokens :+ v)
+        new CalculatorState(next, nest, tokens :+ v)
 
       case (BinaryOperator(v), ParenLeft) =>
-        new CalculatorState(next, nest + 1, acceptDP, tokens :+ v)
+        new CalculatorState(next, nest + 1, tokens :+ v)
 
       // 開き括弧の次に来てもよいのは...
       case (ParenLeft, NumericLiteral(_)) =>
-        new CalculatorState(next, nest, acceptDP, tokens :+ "(")
+        new CalculatorState(next, nest, tokens :+ "(")
 
       case (ParenLeft, ParenLeft) =>
-        new CalculatorState(next, nest + 1, acceptDP, tokens :+ "(")
+        new CalculatorState(next, nest + 1, tokens :+ "(")
 
       case (ParenLeft, UnaryMinus) =>
-        new CalculatorState(next, nest, acceptDP, tokens :+ "(")
+        new CalculatorState(next, nest, tokens :+ "(")
 
       // 閉じ括弧の次に来てもよいのは...
       case (ParenRight, BinaryOperator(_)) =>
-        new CalculatorState(next, nest - 1, acceptDP, tokens :+ ")")
+        new CalculatorState(next, nest - 1, tokens :+ ")")
 
-      case (ParenRight, ParenRight) if nest > 0  =>
-        new CalculatorState(next, nest - 1, acceptDP, tokens :+ ")")
+      case (ParenRight, ParenRight) if nest > 0 =>
+        new CalculatorState(next, nest - 1, tokens :+ ")")
 
       // 単項演算子の次に来てもよいのは...
       case (UnaryMinus, NumericLiteral(v)) =>
-        new CalculatorState(NumericLiteral("-" + v), nest, acceptDP, tokens)
+        new CalculatorState(NumericLiteral("-" + v), nest, tokens)
 
       case (_, _) => this
     }
 }
 
-object CalculatorInitialState extends CalculatorState(Initial, 0, true, Vector[String]())
+object CalculatorInitialState extends CalculatorState(Initial, 0, Vector[String]())
