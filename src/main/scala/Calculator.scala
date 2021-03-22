@@ -1,5 +1,5 @@
+import scala.collection.immutable.Vector
 import scala.collection.mutable.Stack
-import scala.collection.mutable.Queue
 
 import scalafx.scene.control.TextField
 
@@ -24,13 +24,13 @@ class Calculator {
 
   private def rollback: Unit = {
     if (stateArchive.nonEmpty) state = stateArchive.pop
-    display(state.currentTokens.mkString)
+    display(state.toString())
   }
 
   private def allclear: Unit = {
     state = CalculatorInitialState
     stateArchive = new Stack[CalculatorState]()
-    display(state.currentTokens.mkString)
+    display(state.toString())
   }
 
   private def commit(a: String): Unit = {
@@ -39,7 +39,7 @@ class Calculator {
       stateArchive.push(state)
       state = newState
     }
-    display(state.currentTokens.mkString)
+    display(state.toString())
   }
 
   // 逆ポーランド記法に変換してから計算する
@@ -48,23 +48,7 @@ class Calculator {
   // やりたいこと
   // 1 * (2 + 3) / 4 => 1 2 3 + 4 / * というように変換する
   private def calculate: Unit = {
-    val stack: Stack[String] = Stack[String]()
-    val queue: Queue[String] = Queue[String]()
-
-    val tokens = state.currentTokens
-
-    // トークンを演算子と数値に分けたりする
-    for (token <- tokens) {
-      token match {
-        case "+" | "-" | "*" | "/" => stack.push(token)
-        case "("                   => ;
-        case ")"                   => queue.enqueue(stack.pop)
-        case _                     => queue.enqueue(token)
-      }
-    }
-
-    // 逆ポーランド記法になるように演算子を追加していく
-    while (stack.nonEmpty) queue += stack.pop
+    val queue = state.toIPoland()
 
     try {
       val nStack: Stack[BigDecimal] = Stack[BigDecimal]()
@@ -86,7 +70,7 @@ class Calculator {
       }
       allclear
       commit(nStack.pop.toString)
-      display(state.currentTokens.mkString)
+      display(state.toString())
     } catch {
       case _: Exception  => {
         allclear
