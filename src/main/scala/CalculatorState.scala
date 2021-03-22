@@ -19,15 +19,15 @@ class CalculatorState(
   private val tokens:   Vector[String]
 ) {
   // 渡された文字列がどの要素として扱われるべきか判別してから新しい状態を作る
-  def update(input: String): CalculatorState = {
-    val next = input match {
+  def update(a: String): CalculatorState = {
+    val next = a match {
       case "-" if current == ParenLeft || current == Initial =>
         UnaryMinus
-      case "+" | "-" | "*" | "/" => BinaryOperator(input)
+      case "+" | "-" | "*" | "/" => BinaryOperator(a)
       case "("                   => ParenLeft
       case ")"                   => ParenRight
       case "."                   => DecimalPoint
-      case _                     => NumericLiteral(input)
+      case _                     => NumericLiteral(a)
     }
     nextState(next)
   }

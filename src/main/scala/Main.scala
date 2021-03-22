@@ -16,7 +16,12 @@ import scalafx.event.ActionEvent
 import scala.util.Try
 
 object Main extends JFXApp {
-  val calculator = new Calculator
+  val textField = new TextField {
+    editable = false
+    style = "-fx-font-size: 20px;"
+  }
+
+  val calculator = new Calculator(textField)
 
   def makeButton(a: String) = new Button {
     text = a
@@ -25,8 +30,6 @@ object Main extends JFXApp {
     minHeight = 50
     onAction = (e: ActionEvent) => calculator.input(a)
   }
-
-  val textField = calculator.output
 
   val buttonGrid = new GridPane
   buttonGrid.add(makeButton("("),   0, 0, 1, 1)

@@ -3,10 +3,9 @@ import scala.collection.mutable.Stack
 
 import scalafx.scene.control.TextField
 
-class Calculator {
+class Calculator(val output: TextField) {
   private var state: CalculatorState = CalculatorInitialState
   private var archive: Stack[CalculatorState] = Stack[CalculatorState]()
-          val output: TextField = new TextField { editable = false; style = "-fx-font-size: 20px;" }
 
   def input(a: String): Unit = {
     // aに応じてなんか色々
