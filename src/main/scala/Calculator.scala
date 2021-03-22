@@ -4,7 +4,7 @@ import scala.collection.mutable.Queue
 import scalafx.scene.control.TextField
 
 class Calculator {
-  private var state: CalculatorState = new CalculatorInitialState()
+  private var state: CalculatorState = CalculatorInitialState
   private var stateArchive: Stack[CalculatorState] = new Stack[CalculatorState]()
           val output: TextField = new TextField { editable = false; style = "-fx-font-size: 20px;" }
 
@@ -28,7 +28,7 @@ class Calculator {
   }
 
   private def allclear: Unit = {
-    state = new CalculatorInitialState()
+    state = CalculatorInitialState
     stateArchive = new Stack[CalculatorState]()
     display(state.currentTokens.mkString)
   }

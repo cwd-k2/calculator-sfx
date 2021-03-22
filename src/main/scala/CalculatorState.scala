@@ -1,11 +1,11 @@
 // ラッパークラスだと思ってください
-sealed trait CalculatorLiteral { val value: String }
-case class NumberLiteral(value: String)  extends CalculatorLiteral
-case class BinaryOperator(value: String) extends CalculatorLiteral
-case class ParenLeft(value: String)      extends CalculatorLiteral
-case class ParenRight(value: String)     extends CalculatorLiteral
-case class DecimalPoint(value: String)   extends CalculatorLiteral
-case class UnaryMinus(value: String)     extends CalculatorLiteral
+sealed trait CalculatorLiteral
+case class  NumberLiteral(value: String)  extends CalculatorLiteral
+case class  BinaryOperator(value: String) extends CalculatorLiteral
+case object ParenLeft                     extends CalculatorLiteral
+case object ParenRight                    extends CalculatorLiteral
+case object DecimalPoint                  extends CalculatorLiteral
+case object UnaryMinus                    extends CalculatorLiteral
 
 class CalculatorState(
   private val currentLiteral: CalculatorLiteral,
@@ -15,87 +15,86 @@ class CalculatorState(
 ) {
   // 渡された文字列がどの要素として扱われるべきか判別してから新しい状態を作る
   def update(a: String): CalculatorState = {
-    val nextLiteral: CalculatorLiteral = a match {
-      case "-" if currentLiteral == ParenLeft("(") => UnaryMinus(a)
+    val nextLiteral = a match {
+      case "-" if currentLiteral == ParenLeft => UnaryMinus
       case "+" | "-" | "*" | "/" => BinaryOperator(a)
-      case "("                   => ParenLeft(a)
-      case ")"                   => ParenRight(a)
-      case "."                   => DecimalPoint(a)
+      case "("                   => ParenLeft
+      case ")"                   => ParenRight
+      case "."                   => DecimalPoint
       case _                     => NumberLiteral(a)
     }
     nextState(nextLiteral)
   }
 
   // 計算可能な式の形になっているかを判別する
-  def isReady: Boolean = {
+  def isReady: Boolean =
     currentLiteral match {
-      case BinaryOperator(_) | DecimalPoint(_) | ParenLeft(_) | UnaryMinus(_) => false
+      case BinaryOperator(_) | DecimalPoint | ParenLeft | UnaryMinus => false
       case _ => nestDepth == 0
     }
-  }
 
   // 新しい状態を返す
   // ここで受付可能かどうか今の状態から判別している
   // 受け付けられないなら今の自分の状態をそのまま返す
   private def nextState(nextLiteral: CalculatorLiteral): CalculatorState = {
-    var nextNestDepth: Int              = nestDepth
-    var nextAcceptDecimalPoint: Boolean = acceptDecimalPoint
-    var nextTokens: Array[String]       = currentTokens.clone
+    var nextNestDepth          = nestDepth
+    var nextAcceptDecimalPoint = acceptDecimalPoint
+    var nextTokens             = currentTokens.clone
 
     (currentLiteral, nextLiteral) match {
-      case (NumberLiteral(_), NumberLiteral(_))  => {
-        nextTokens(nextTokens.length - 1) += nextLiteral.value
+      case (NumberLiteral(_), NumberLiteral(v))  => {
+        nextTokens(nextTokens.length - 1) += v
       }
-      case (NumberLiteral(_), BinaryOperator(_)) => {
+      case (NumberLiteral(_), BinaryOperator(v)) => {
         nextAcceptDecimalPoint = true
-        nextTokens = nextTokens :+ nextLiteral.value
+        nextTokens = nextTokens :+ v
       }
-      case (NumberLiteral(_), DecimalPoint(_))
+      case (NumberLiteral(_), DecimalPoint)
       if acceptDecimalPoint => {
         nextAcceptDecimalPoint = false
-        nextTokens(nextTokens.length - 1) += nextLiteral.value
+        nextTokens(nextTokens.length - 1) += "."
       }
-      case (NumberLiteral(_), ParenRight(_))
+      case (NumberLiteral(_), ParenRight)
       if nestDepth > 0      => {
         nextNestDepth -= 1
         nextAcceptDecimalPoint = true
-        nextTokens = nextTokens :+ nextLiteral.value
+        nextTokens = nextTokens :+ ")"
       }
 
-      case (BinaryOperator(_), NumberLiteral(_)) => {
-        nextTokens = nextTokens :+ nextLiteral.value
+      case (BinaryOperator(_), NumberLiteral(v)) => {
+        nextTokens = nextTokens :+ v
       }
-      case (BinaryOperator(_), ParenLeft(_))     => {
+      case (BinaryOperator(_), ParenLeft)     => {
         nextNestDepth += 1
-        nextTokens = nextTokens :+ nextLiteral.value
+        nextTokens = nextTokens :+ "("
       }
 
-      case (DecimalPoint(_), NumberLiteral(_)) => {
-        nextTokens(nextTokens.length - 1) += nextLiteral.value
+      case (DecimalPoint, NumberLiteral(v)) => {
+        nextTokens(nextTokens.length - 1) += v
       }
 
-      case (ParenLeft(_), NumberLiteral(_)) => {
-        nextTokens = nextTokens :+ nextLiteral.value
+      case (ParenLeft, NumberLiteral(v)) => {
+        nextTokens = nextTokens :+ v
       }
-      case (ParenLeft(_), ParenLeft(_))     => {
+      case (ParenLeft, ParenLeft)     => {
         nextNestDepth += 1
-        nextTokens = nextTokens :+ nextLiteral.value
+        nextTokens = nextTokens :+ "("
       }
-      case (ParenLeft(_), UnaryMinus(_))    => {
-        nextTokens = nextTokens :+ nextLiteral.value
+      case (ParenLeft, UnaryMinus)    => {
+        nextTokens = nextTokens :+ "-"
       }
 
-      case (ParenRight(_), BinaryOperator(_)) => {
-        nextTokens = nextTokens :+ nextLiteral.value
+      case (ParenRight, BinaryOperator(v)) => {
+        nextTokens = nextTokens :+ v
       }
-      case (ParenRight(_), ParenRight(_))
+      case (ParenRight, ParenRight)
       if nextNestDepth > 0  => {
         nextNestDepth -= 1
-        nextTokens = nextTokens :+ nextLiteral.value
+        nextTokens = nextTokens :+ ")"
       }
 
-      case (UnaryMinus(_), NumberLiteral(_)) => {
-        nextTokens(nextTokens.length - 1) += nextLiteral.value
+      case (UnaryMinus, NumberLiteral(v)) => {
+        nextTokens(nextTokens.length - 1) += v
       }
 
       case (_, _) => return this
@@ -105,4 +104,4 @@ class CalculatorState(
   }
 }
 
-class CalculatorInitialState extends CalculatorState(ParenLeft("("), 0, true, Array[String]())
+object CalculatorInitialState extends CalculatorState(ParenLeft, 0, true, Array[String]())
