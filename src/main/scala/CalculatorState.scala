@@ -57,6 +57,8 @@ class CalculatorState(
     }
 
   // 逆ポーランド記法に変換し, Queue として返す
+  // やりたいこと
+  // 1 * (2 + 3) / 4 => 1 2 3 + 4 / * というように変換する
   def toIPoland(): Queue[String] = {
     val stack: Stack[String] = Stack[String]()
     val queue: Queue[String] = Queue[String]()
